@@ -1,68 +1,142 @@
-# Getting Started
+# House of Voi – Slot Machine  
+Provably fair, on-chain slot machine for the Voi Network
 
-This is a lightweight repo to get started with building AVM smart contracts, testing them and deploying them.
+## Overview
 
-Ensure you have the following installed:
-  - [node](https://nodejs.org/en/download/)
-  - [algokit](https://developer.algorand.org/docs/get-started/algokit/)
-    - Algokit will have prerequestites that need to be installed too.
+This repository contains the on-chain logic and supporting scripts for the **House of Voi Slot Machine**, a fully verifiable blockchain slot machine.
 
-# Development
+- 🧩 **Commit–reveal randomness** for verifiable fairness  
+- 💰 **On-chain payouts** — instant, transparent, immutable  
+- 🎰 **Upgradeable design** that extends to multi-reel machines and tournaments  
+- ⚙️ **Built on the Voi Network**, compatible with Algorand’s AVM model  
 
-Edit the `contract.py` file to implement your desired contract using Python.
+> **Goal:** demonstrate how yield-bearing tokens and commit–reveal mechanics combine to create a transparent, fun, and fair gaming experience.
 
-You can add other files and import them in the `contract.py` file as necessary.
+---
 
-# Compilation
+## How It Works
 
-1. Edit `generate_clients.sh`.
-  - Update `artifacts` to match your contract name(s).
-  - E.g. local artifacts=("HelloWorld")
-  - E.g. local artifacts=("HelloWorld" "OtherContract" "AnotherContract")
-2. In root directory run `source commands.sh`
-3. In root directory run `build-all`
-  - This will compile the contracts and put the teal and json files in the `artifacts` folder.
-  - This will put the interface ts files into the `src/scripts/clients` folder.
-4. To just re-compile the contracts you can use `build-artifacts`.
+1. **Commit Phase** – The slot machine commits to a secret random seed hash.  
+2. **Player Spin** – The player submits a spin transaction with their wager.  
+3. **Reveal Phase** – The seed is revealed, validated against the commitment, and used to compute reel results.  
+4. **Payout** – The contract settles the payout if the result is a win.  
 
-# Testing
+All randomness and outcomes can be independently verified using on-chain data.
 
-## Environment
+---
 
-You can test on either testnet or your local devnet.
+## Repository Structure
 
-It's a matter of updating the deploy options as outlined in the [Deployment](#deployment) section.
+| Path | Description |
+|------|--------------|
+| `contract.py` | Core smart contract logic: spin resolution, payouts, and fairness proofs. |
+| `artifacts/` | Compiled TEAL + ABI JSON files. |
+| `src/` | TypeScript helpers and deployment scripts. |
+| `src/scripts/clients/` | Generated TypeScript clients for each contract. |
+| `generate_clients.sh` | Builds ABI clients for contracts and moves them into `src/scripts/clients/`. |
+| `commands.sh` | Helper aliases for building, testing, and deploying. |
+| `Dockerfile` | Containerized environment for consistent builds. |
 
-If you opt to use devnet you will need to spin up the local devnet first with `algokit localnet start`
+---
 
-Once running you can check the status at the following link:
-  - https://lora.algokit.io/localnet
+## Prerequisites
 
-From there you can fund your testing account with tokens via the interface.
+- Node.js and npm  
+- [AlgoKit CLI](https://github.com/algorandfoundation/algokit-cli)  
+- Python + Pipenv (or standard `pip`)  
+- Optional: Docker and VSCode  
 
-## Run Tests
+---
 
-1. Run `mocha` in root directory.
+## Setup
 
-# Deployment
+```bash
+git clone https://github.com/House-of-Voi/slot-machine.git
+cd slot-machine
 
-Update `command.ts` to match contract name(s). This file is a helper to deploy your compiled contracts to the network set in the file itself.
+# Python deps
+pipenv install  # or pip install -r requirements.txt
 
-1. Set your mnemonic in the `acc` variable.
-2. Update the import statement starting on line 2 for your contract.
-3. DeployType to match your contract name(s).
-  - E.g. type DeployType = "HelloWorld";
-  - E.g. type DeployType = "HelloWorld" | "OtherContract" | "AnotherContract";
-4. options.type switch statement to match your contract name(s).
-  - Ensure the case matches your DeployTypes in the previous step and you return the correct Client for your contract from the import statement in the first step.
-5. If you get lint errrors for `algoClient` and `deploy` you can ignore.
-6. To change network you deploy to change the `ALGO_SERVER` and `ALGO_INDEXER_SERVER` variables.
-7. Run `npm i` in the `scripts` directory.
-8. Run `npx tsc` in the `scripts` directory.
-9. In the root directory run `cli deploy -t <contract name> -n <contract name>`
-  - E.g. `cli deploy -t HelloWorld -n HelloWorld`
-  - E.g. `cli deploy -t HelloWorld -n AnotherContract`
-  - E.g. `cli deploy -t HelloWorld -n OtherContract`
+# JS deps
+cd src/scripts
+npm install
+cd ../..
+```
 
+---
 
+## Development Flow
 
+### 1. Edit the Contract
+Modify `contract.py` for logic changes. This file defines game rules, spin resolution, and payouts.
+
+### 2. Generate Clients and Build Artifacts
+```bash
+source commands.sh
+build-all
+```
+
+This compiles contracts and regenerates typed clients under `src/scripts/clients/`.
+
+### 3. Run Local Devnet (Optional)
+```bash
+algokit localnet start
+```
+Then open `https://lora.algokit.io/localnet` to verify your devnet status and faucet test funds.
+
+### 4. Run Tests
+```bash
+mocha
+```
+
+---
+
+## Deployment
+
+1. Edit `src/scripts/command.ts`:  
+   - Import your contract clients.  
+   - Set `DeployType` with the contracts you want to deploy.  
+   - Adjust RPC endpoints (`ALGO_SERVER`, `ALGO_INDEXER_SERVER`).  
+
+2. Compile and deploy:
+```bash
+cd src/scripts
+npx tsc
+cd ../..
+cli deploy -t SlotMachine -n SlotMachine
+```
+
+---
+
+## Verifying Fairness
+
+After each spin, the contract reveals the seed used to generate results. Anyone can:
+
+1. Recompute the hash chain / commitment.  
+2. Re-derive reel results deterministically.  
+3. Confirm payout logic matches contract execution.
+
+---
+
+## Roadmap
+
+- [ ] 5-Reel & Multi-Line Mode  
+- [ ] Progressive Jackpots  
+- [ ] Tournament & Leaderboard System  
+- [ ] Animated Front-End Integration  
+- [ ] On-Chain Fairness Verifier  
+
+---
+
+## Security
+
+> **Warning:** This is experimental software.  
+> Do not deploy with real value without code review and audit.  
+
+Please report potential vulnerabilities or randomness exploits via GitHub Issues.
+
+---
+
+## License
+
+MIT
